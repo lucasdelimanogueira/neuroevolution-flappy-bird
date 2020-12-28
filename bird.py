@@ -15,7 +15,7 @@ class Bird:
         self.x = x
         self.y = y
         self.tilt = 0
-        self.tick_count = 0 # contagem de clock auxiliar para calcular movimento de pulo
+        self.tick_count = 0 # auxiliary clock counting to manage the jumping movement
         self.y_vel = 0
         self.height = self.y
         self.img_count = 0
@@ -29,36 +29,36 @@ class Bird:
         self.fitness = 0.1
 
     def jump(self):
-        self.y_vel = -10.5 # pássaro com velocidade para cima (ref 0,0 -> top left)
-        self.tick_count = 0 # zera contagem de tempo
-        self.height = self.y # altura em que o pássaro pulou
+        self.y_vel = -10.5 # bird with upward speed (screen pixel reference 0,0 -> top left)
+        self.tick_count = 0 # reset clock
+        self.height = self.y # height the bird jumped
 
     def move(self):
 
         if self.is_alive:
-            self.tick_count += 1 # quantos clocks desde o último pulo
+            self.tick_count += 1 # clock counting since last jump
 
             if self.brain.feedforward([[self.distance_x_next_pipe], [self.distance_y_next_pipe]]) > 0.5:
                 self.jump()
 
-            d = self.y_vel * self.tick_count + 1.5 * self.tick_count**2 # d = voT + aT^2/2
+            d = self.y_vel * self.tick_count + 1.5 * self.tick_count**2 # s = voT + aT^2/2
 
-            # limitar para nao cair muito rápido
+            # limit to do not fall too fast
             if d >= 16:
                 d = 16
 
-            # simular um impulso de pulo
+            # simulate impulse during jump
             if d <= 0:
                 d -= 2
 
             self.y = self.y + d # s = so + voT + aT^2/2
 
-            if d < 0 or self.y < self.height + 50: # se estiver pulando ou até um pouco depois do pulo
-                if self.tilt < self.MAX_ROTATION: # angula o pássaro
+            if d < 0 or self.y < self.height + 50: # if already jumping or a little after the jump
+                if self.tilt < self.MAX_ROTATION: # angles the bird
                     self.tilt = self.MAX_ROTATION
             else:
-                if self.tilt > -90: # limita angulação máxima
-                    self.tilt -= self.ROT_VEL # vai diminuindo angulação do pássaro
+                if self.tilt > -90: # max angle limit
+                    self.tilt -= self.ROT_VEL # decreases the bird angle
 
         else:
             self.x -= 5
@@ -66,7 +66,7 @@ class Bird:
     def draw(self, win):
         self.img_count += 1
 
-        # simular um "GIF" para animação do pássaro batendo asas
+        # simulate a "GIF" to animate the bird flapping wings
         if self.img_count < self.ANIMATION_TIME:
             self.img = self.IMGS[0]
         elif self.img_count < self.ANIMATION_TIME*2:
@@ -79,52 +79,52 @@ class Bird:
             self.img = self.IMGS[0]
             self.img_count = 0
 
-        # se estiver pulando (inclinado) não bater asas
+        # if jumping (inclined) do not flap wings
         if self.tilt <= -80:
             self.img = self.IMGS[1]
             self.img_count = self.ANIMATION_TIME*2
 
-        # rotacionar imagem de acordo com self.inclinação
+        # rotate image according to inclination
         rotated_image = pygame.transform.rotate(self.img, self.tilt)
-        # alterar referencia para rotacionar imagem em torno do centro
+        # change reference to rotate image around the center
         new_rect = rotated_image.get_rect(center=self.img.get_rect(topleft = (self.x, self.y)).center)
         win.blit(rotated_image, new_rect.topleft)
 
 
     def get_mask(self):
-        return pygame.mask.from_surface(self.img) # bordas de colisão
+        return pygame.mask.from_surface(self.img) # collision edges
 
 
     def mutate(self, mutation_rate):
-        for c, W in enumerate(self.brain.weights): # para cada matrix de conexões
-            for j, neuron_weights_connections in enumerate(W): # para cada neuronio j
-                for k, weight in enumerate(neuron_weights_connections): # para cada peso wjk
-                    if random.random() < mutation_rate:  # mutação com probabilidade mutation_rate
-                        new_weight = weight * 4*(random.random() - 0.5) # soma weight por valor entre -2 e 2
-                        self.brain.weights[c][j][k] = new_weight # substitui o novo gene (weight)
+        for c, W in enumerate(self.brain.weights): # for each weight matrix
+            for j, neuron_weights_connections in enumerate(W): # for each neuron j
+                for k, weight in enumerate(neuron_weights_connections): # for each weight w_jk
+                    if random.random() < mutation_rate:  # mutation with probability mutation_rate
+                        new_weight = weight * 4*(random.random() - 0.5) # multiply weight with value between -2 and 2
+                        self.brain.weights[c][j][k] = new_weight # replaces new gene (weight)
 
-        for l, B in enumerate(self.brain.biases): # para cada layer
-            for j, bias in enumerate(B): # para cada neuronio j
-                if random.random() < mutation_rate: #mutação com probabilidade mutation_rate
-                    new_biases = bias[0] * 4*(random.random() - 0.5) # multiplica bias por valor entre -2 e 2
-                    self.brain.biases[l][j][0] = new_biases # substitui o novo gene (bias)
+        for l, B in enumerate(self.brain.biases): # for each bias matrix
+            for j, bias in enumerate(B): # for each neuron j
+                if random.random() < mutation_rate: # mutation with probability mutation_rate
+                    new_biases = bias[0] * 4*(random.random() - 0.5) # multiply bias with value between -2 and 2
+                    self.brain.biases[l][j][0] = new_biases # replaces the new gene (bias)
 
     @staticmethod
     def cross_over(partner_a, partner_b):
         child = Bird()
 
-        #cross over weights
-        for c, W in enumerate(partner_a.brain.weights): # para cada matrix de conexões
-            for j, neuron_weights_connections in enumerate(W): # para cada neuronio j
-                for k, weight in enumerate(neuron_weights_connections): # para cada peso wjk
+        # weights crossover
+        for c, W in enumerate(partner_a.brain.weights): # for each weights matrix
+            for j, neuron_weights_connections in enumerate(W): # for each neuron j
+                for k, weight in enumerate(neuron_weights_connections): # for each weight w_jk
 
                     #child = partner_a + rand(partner_b - partner_a)
                     child.brain.weights[c][j][k] = partner_a.brain.weights[c][j][k] \
                                                    + random.random()*(partner_b.brain.weights[c][j][k] - \
                                                            partner_a.brain.weights[c][j][k])
 
-        #cross over biases
-        for l, B in enumerate(partner_a.brain.biases): # para cada layer
+        # biases crossover
+        for l, B in enumerate(partner_a.brain.biases): # for each bias matrix
             for j, bias in enumerate(B): # para cada neuronio j
 
                 # child = partner_a + rand(partner_b - partner_a)
