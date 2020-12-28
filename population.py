@@ -5,13 +5,13 @@ class Population:
     def __init__(self, n_individuals, mutation_rate):
         self.n_individuals = n_individuals
         self.mutation_rate = mutation_rate
-        self.individuals = []  # individuos da população
+        self.individuals = []  # population individuals
         self.generate()
         self.total_fitness = 0
 
-    def generate(self): # gerar população
+    def generate(self): # generates population
         for id_individual in range(self.n_individuals):
-            individual = Bird(115, 175) # cria individuo e adiciona à população
+            individual = Bird(115, 175) # generates and individual
             self.individuals.append(individual)
 
     def reproduct(self):
@@ -20,34 +20,34 @@ class Population:
         childs = []
 
         for n in range(self.n_individuals):
-            partner_a = self.select()  # seleciona um indivíduo a com probabilidade de acordo com fitness
-            partner_b = self.select()  # seleciona um indivíduo b com probabilidade de acordo com fitness
+            partner_a = self.select()  # samples an individual a with probability according to fitness
+            partner_b = self.select()  # samples an individual b with probability according to fitness
 
-            child = Bird.cross_over(partner_a, partner_b) # gera o child a partir do cross-over entre a e b
+            child = Bird.cross_over(partner_a, partner_b) # generates child through a-b crossover
 
-            child.mutate(self.mutation_rate)  # mutação do child a partir da probabilidade mutation_rate
-            childs.append(child)  # adiciona o child na população
+            child.mutate(self.mutation_rate)  # mutates child according to mutation_rate probability
+            childs.append(child)  # adds child in population
 
-        self.individuals = childs.copy()  # atualiza população
+        self.individuals = childs.copy()  # updates population
 
     def select(self):
-        """ Seleciona um individuo dentro da população com probabilidade de acordo com o fitness
-        1- Gera um valor aleatório random_value
-        2- Itera sobre os indivíduos imaginando os fitness em uma "pilha de fitness imaginária"
-        3- Compara a altura do random_value com a altura da pilha e retorna o individuo na mesma faixa
-        ex: AAAAAAABBBBBBBCCCCC # pilha
-            VVVVV # random_value -> retorna A
-            VVVVVVVVVVV -> retorna B
-            VVVVVVVVVVVVVVVVV -> retorna C
+        """ Sampels an individual according to its fitness
+        1- Generates a random value random_value
+        2- Iterates over the individuals imagining a "fitness stack"
+        3- Compares the random_value "height" with the stacked fitness values and return an individual in the same range
+        ex: AAAAAAABBBBBBBCCCCC # stack
+            VVVVV # random_value -> return A
+            VVVVVVVVVVV -> return B
+            VVVVVVVVVVVVVVVVV -> return C
         """
-        rand_value = self.total_fitness * random.random()  # gera um valor v entre 0 e soma dos fitness
+        rand_value = self.total_fitness * random.random()  # generates value v between 0 and fitness overall sum
 
-        for individual in self.individuals:  # itera sobre a lista de individuos
-            rand_value = rand_value - individual.fitness  # subtrai do valor aleatório os scores de cada individuo
+        for individual in self.individuals:  # iterates over the individuals list
+            rand_value = rand_value - individual.fitness  # subtracts from the random value the scores of the individual
 
             if rand_value <= 0:
-                # quando o random_value ficar negativo, significa que o rand_value gerado estava
-                # na faixa de probabilidades do fitness do individuo
+                # when random_value becomes negative it means that the generated random_value was in the range of probabilities of the respective individual's fitness
+ 
                 return individual
 
 
